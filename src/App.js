@@ -11,18 +11,51 @@ function App() {
   const [points, setPoints] = useState([{x:0, y:0}, {x:0, y:0}, {x:0, y:0}, {x:0, y:0}, {x:0, y:0}]);
 
   // 測試誤差
-  const [distanceCompareRecord1, setDistanceCompareRecord1] = useState([])
-  const [distanceCompareRecord2, setDistanceCompareRecord2] = useState([])
-  const [distanceCompareRecord3, setDistanceCompareRecord3] = useState([])
+  const [distanceCompareRecord1, setDistanceCompareRecord1] = useState([]);
+  const [distanceCompareRecord2, setDistanceCompareRecord2] = useState([]);
+  const [distanceCompareRecord3, setDistanceCompareRecord3] = useState([]);
+  const [compareRecordRange1, setCompareRecordRange1] = useState([]);
+  const [compareRecordRange2, setCompareRecordRange2] = useState([]);
+  const [compareRecordRange3, setCompareRecordRange3] = useState([]);
 
+  const col = () => {
+    const colRange = (arr) => {
+      const range = [
+        [arr[0][0], arr[0][0]],
+        [arr[0][1], arr[0][1]],
+        [arr[0][2], arr[0][2]],
+        [arr[0][3], arr[0][3]],
+        [arr[0][4], arr[0][4]],
+        [arr[0][5], arr[0][5]],
+        [arr[0][6], arr[0][6]],
+        [arr[0][7], arr[0][7]],
+        [arr[0][8], arr[0][8]],
+      ]
+      arr.map(item => {
+        for(let i=0; i<9; i++) {
+          if (item[i] < range[i][0]) {
+            range[i][0] = item[i]
+          } else if (item[i] > range[i][1]) {
+            range[i][1] = item[i]
+          }
+        }
+      })
+      return range
+    }
+
+    if (distanceCompareRecord1.length > 0) setCompareRecordRange1(colRange(distanceCompareRecord1))
+    if (distanceCompareRecord2.length > 0) setCompareRecordRange2(colRange(distanceCompareRecord2))
+    if (distanceCompareRecord3.length > 0) setCompareRecordRange3(colRange(distanceCompareRecord3))
+  }
+  
   useEffect(() => {
 
     // Event Listener - get screen size
-    const handleResize = () => {
+    // const handleResize = () => {
       setScreenWidth(window.innerWidth);
       setScreenHeight(window.innerHeight);
-    };
-    handleResize();
+    // };
+    // handleResize();
 
     const handleTouchStart = (event) => {
       if (event.touches.length === 5) {
@@ -46,16 +79,11 @@ function App() {
         const newSort = pointGroup.sort((a, b) => d(centerPoint, a) - d(centerPoint, b));
 
         const c = [];
-        c.push(Math.round(d(newSort[0], newSort[1])));
-        c.push(Math.round(d(newSort[0], newSort[2])));
-        c.push(Math.round(d(newSort[0], newSort[3])));
-        c.push(Math.round(d(newSort[0], newSort[4])));
-        c.push(Math.round(d(newSort[1], newSort[2])));
-        c.push(Math.round(d(newSort[1], newSort[3])));
-        c.push(Math.round(d(newSort[1], newSort[4])));
-        c.push(Math.round(d(newSort[2], newSort[3])));
-        c.push(Math.round(d(newSort[2], newSort[4])));
-        c.push(Math.round(d(newSort[3], newSort[4])));
+        for(let i=0; i<=3; i++) {
+          for(let j=i+1; j<=4; j++) {
+            c.push(Math.round(d(newSort[i], newSort[j])));
+          }
+        }
         const standard = c[0];
         c.shift();
 
@@ -63,11 +91,11 @@ function App() {
       }
     }
 
-    window.addEventListener('resize', handleResize);
+    // window.addEventListener('resize', handleResize);
     window.addEventListener('touchstart', handleTouchStart);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      // window.removeEventListener('resize', handleResize);
       window.removeEventListener('touchstart', handleTouchStart);
     }
   }, [])
@@ -76,13 +104,13 @@ function App() {
     // 比較兩組參數是否完全不一樣
     const diff = (arrA, arrB) => {
       for (let i = 0; i < arrA.length; i++) {
-        // console.log(Math.abs(arrA[i] - arrB[i]))
-        // console.log(Math.abs(arrA[i] - arrB[i]) / arrA[i]);
         if (Math.abs(arrA[i] - arrB[i]) / arrA[i] > 0.2) return true;
       }
       return false;
     }
 
+    // 記錄比較參數record
+    // 由於蓋印有座標誤差，導致判斷點的順序不一，所以可能有2組或以上的比較參數
     if (distanceCompare.length > 0) {
       if (distanceCompareRecord1.length === 0 || !diff(distanceCompareRecord1[distanceCompareRecord1.length-1], distanceCompare)) {
         setDistanceCompareRecord1([...distanceCompareRecord1, distanceCompare]);
@@ -115,9 +143,9 @@ function App() {
     },
     stampInfoBox: {
       color: 'white',
-      width: screenWidth * 0.6,
+      width: screenWidth * 0.8,
       marginTop: screenHeight * 0.5,
-      marginLeft: screenWidth * 0.2,
+      marginLeft: screenWidth * 0.1,
       // border: '0.1px solid white',
     },
   };
@@ -143,7 +171,16 @@ function App() {
           <div>{distanceCompare.map(d=>`${d}, `)}</div>
         </div>
 
-        <button>{`計算誤差 (${distanceCompareRecord1.length}/${distanceCompareRecord2.length}/${distanceCompareRecord3.length})`}</button>
+        <button onClick={col}>{`計算誤差量 (${distanceCompareRecord1.length}/${distanceCompareRecord2.length}/${distanceCompareRecord3.length})`}</button>
+
+
+        {/* {distanceCompareRecord1.map((d, index) => (
+          <div key={index} style={{marginBottom: 5}}>{JSON.stringify(d)}</div>
+        ))} */}
+
+        <div>{compareRecordRange1.map(r => `(${r[0]}-${r[1]}),  `)}</div>
+        <div>{compareRecordRange2.map(r => `(${r[0]}-${r[1]}),  `)}</div>
+        <div>{compareRecordRange3.map(r => `(${r[0]}-${r[1]}),  `)}</div>
       </div>
     </div>
   );
